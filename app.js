@@ -48,31 +48,27 @@ app.config(['$routeProvider', function ($routeProvider) {
 }]);
 // you can access the factory from the console by doing:
 // angular.element(document.body).injector().get('Expenses')
-app.factory('Expenses', function ($http) {
+app.factory('Expenses', function () {
 	var service = {};
 
 	// the id will be a unique identifier,it could come from a server
-	service.entries = [];
+	service.entries = [
+		{ id: 1, description: 'food', amount: 10, date: '2019-10-01' },
+		{ id: 2, description: 'tickets', amount: 11, date: '2019-10-02' },
+		{ id: 3, description: 'food', amount: 12, date: '2019-10-03' },
+		{ id: 4, description: 'phone edit', amount: 13, date: '2019-10-04' },
+		{ id: 5, description: 'bills', amount: 14, date: '2019-10-05' },
+		{ id: 6, description: 'food', amount: 15, date: '2019-10-06' }
+	];
 
-	// take a file json from the server
-	$http.get('data/get_all.json')
-	/* 	.then(function (data) {
-			service.entries = data; */
-			.then(function successCallback(response) {
-				console.log(response);
-				service.entries = response;
-			// apply to every element.date the function fot the formatted a valid date
-			// convert strings to date objects
-			/* service.entries.forEach(function (element) {
-				element.date = myHelpers.stringToDateObj(element.date);
-			}) */	
-				
-			},function errorCallback(response){
-				alert(response.statusText);
-			});
+	// apply to every element.date the function fot the formatted a valid date
+	// convert strings to date objects
+	service.entries.forEach(function (element) {
+		element.date = myHelpers.stringToDateObj(element.date);
+	});
 
 	// new method for assign a newId 
-/* 	service.getNewId = function () {
+	service.getNewId = function () {
 
 		// if we already have one, increase by 1
 		if (service.newId) {
@@ -87,7 +83,7 @@ app.factory('Expenses', function ($http) {
 			service.newId = entryMaxId.id + 1;
 		}
 		return service.newId;
-	}; */
+	};
 
 	service.getById = function (id) {
 		return _.find(service.entries, function (entry) {
@@ -99,31 +95,17 @@ app.factory('Expenses', function ($http) {
 
 		var toUpdate = service.getById(entry.id);
 
-		if (toUpdate) {
-			$http.post('data/update.json',entry)
-			.then(function successCallback(response) {
-				if(response.then){
-					_.extend(toUpdate, entry)
-				}
-			},function errorCallback(response){
-				alert(response.statusText);		
-			});
+		if (toUpdate ){
+			_.extend(toUpdate, entry)
 		}
 		else {
-			/* entry.id = service.getNewId();
-			service.entries.push(entry); */
-			$http.post('data/create.json',entry)
-			.then(function successCallback(response) {
-				console.log(response.newId);
-				entry.id = response.newId;
-				service.entries.push(entry);
-			},function errorCallback(response){
-				alert(response.statusText);
-			});
+			entry.id = service.getNewId();
+			service.entries.push(entry);
 		}
 	}
+
 	service.remove = function (entry) {
-		service.entries = _.reject(service.entries, function (element) {
+		service.entries = _.reject(service.entries, function(element){
 			return element.id == entry.id;
 		});
 	};
@@ -135,16 +117,16 @@ app.factory('Expenses', function ($http) {
 app.controller('ExpensesViewController', ['$scope', 'Expenses', function ($scope, Expenses) {
 	$scope.expenses = Expenses.entries;
 
-	$scope.remove = function (expense) {
+	$scope.remove = function(expense){
 		Expenses.remove(expense);
 	};
 
-	$scope.$watch(function () {
+	$scope.$watch(function(){
 		return Expenses.entries
 	},
-		function (entries) {
-			$scope.expenses = entries;
-		});
+	function(entries){
+		$scope.expenses = entries;
+	});
 }]);
 
 // create or edit an expense
@@ -166,10 +148,4 @@ app.controller('ExpenseViewController', ['$scope', '$routeParams', '$location', 
 		$location.path('/');
 	}
 
-	app.directive('sbExpense', function () {
-		return {
-			restrict: 'E',
-			templateUrl: 'views/expense.html'
-		}
-	})
 }]);
