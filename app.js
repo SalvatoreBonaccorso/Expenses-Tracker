@@ -69,24 +69,46 @@ app.factory('Expenses', function () {
 
 	// new method for assign a newId 
 	service.getNewId = function () {
+
+		// if we already have one, increase by 1
 		if (service.newId) {
 			service.newId++;
 		}
 		else {
-				// find the largest id value using underscore.js
-				// documentation for .max: http://underscorejs.org/#max
-				var entryMaxId = _.max(x, function (entry) {
-					return entry.id;
-				});
+			// find the largest id value using underscore.js
+			// documentation for .max: http://underscorejs.org/#max
+			var entryMaxId = _.max(service.entries, function (entry) {
+				return entry.id;
+			});
 			service.newId = entryMaxId.id + 1;
 		}
 		return service.newId;
 	};
 
-	service.save = function (entry) {
-		entry.id = service.getNewId();
-		service.entries.push(entry);
+	service.getById = function (id) {
+		return _.find(service.entries, function (entry) {
+			return entry.id == id;
+		});
 	}
+
+	service.save = function (entry) {
+
+		var toUpdate = service.getById(entry.id);
+
+		if (toUpdate ){
+			_.extend(toUpdate, entry)
+		}
+		else {
+			entry.id = service.getNewId();
+			service.entries.push(entry);
+		}
+	}
+
+	service.remove = function (entry) {
+		service.entries = _.reject(service.entries, function(element){
+			return element.id == entry.id;
+		});
+	};
 
 	return service;
 })
@@ -94,16 +116,42 @@ app.factory('Expenses', function () {
 // listing of all expenses
 app.controller('ExpensesViewController', ['$scope', 'Expenses', function ($scope, Expenses) {
 	$scope.expenses = Expenses.entries;
+
+	$scope.remove = function(expense){
+		Expenses.remove(expense);
+	};
+
+	$scope.$watch(function(){
+		return Expenses.entries
+	},
+	function(entries){
+		$scope.expenses = entries;
+	});
 }]);
 
 // create or edit an expense
 app.controller('ExpenseViewController', ['$scope', '$routeParams', '$location', 'Expenses', function ($scope, $routeParams, $location, Expenses) {
+
+	// the expense will either be a new one or existing one if we are editing
 	if (!$routeParams.id) {
-		$scope.expense = { id: 7, description: 'something', amount: 19, date: new Date() };
+		$scope.expense = { date: new Date() };
+	}
+	else {
+		//clone makes a copy of an object,so we don't modify the real object before clicking Save
+		$scope.expense = _.clone(Expenses.getById($routeParams.id));
 	}
 
+	// push the expense to the array of expenses. Duplicate entries will thow error unless 
+	// adding "track by $index" to the 
 	$scope.save = function () {
 		Expenses.save($scope.expense);
 		$location.path('/');
 	}
+
+app.directive('sbExpense',function(){
+	return {
+		restrict: 'E',
+		templateUrl: 'views/expense.html'
+	}
+})
 }]);
