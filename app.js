@@ -122,7 +122,6 @@ app.factory('Expenses', function ($http) {
 			});
 		}
 	}
-
 	service.remove = function (entry) {
 		service.entries = _.reject(service.entries, function (element) {
 			return element.id == entry.id;
