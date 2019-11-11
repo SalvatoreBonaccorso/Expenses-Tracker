@@ -1,10 +1,10 @@
-## testare l’applicazione su:
+## Testare l’applicazione su un:
 
-### server web Python:
+#### Server web Python:
 `python -m SimpleHTTPServer`
 
-### server web integrato PHP
+#### Server web integrato PHP
 `php -S localhost:8000`
 
-### server locale
+#### Server locale
 `simplehttpserver`
